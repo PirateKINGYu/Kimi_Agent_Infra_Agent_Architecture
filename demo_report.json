@@ -1,0 +1,46 @@
+{
+  "generated_at": "2025-09-06T11:27:55.086082",
+  "summary": {
+    "total_traces": 3,
+    "successful_traces": 0,
+    "success_rate": 0.0,
+    "total_tokens": 0,
+    "avg_tokens_per_trace": 0.0,
+    "total_api_calls": 0,
+    "avg_api_calls_per_trace": 0.0,
+    "avg_execution_time": 7.108062333333333
+  },
+  "tool_usage": {},
+  "traces": [
+    {
+      "trace_id": "d3dcc18f-8068-4059-94a7-6c09930d7a32",
+      "query": "计算 25 * 34 + 128 的结果",
+      "success": false,
+      "start_time": "2025-09-06T11:27:27.042404",
+      "end_time": "2025-09-06T11:27:34.085797",
+      "steps_count": 0,
+      "tool_calls_count": 0,
+      "total_tokens": 0
+    },
+    {
+      "trace_id": "d84bb293-2c7d-4e45-8801-46e3d51b7462",
+      "query": "搜索关于人工智能的信息",
+      "success": false,
+      "start_time": "2025-09-06T11:27:34.085797",
+      "end_time": "2025-09-06T11:27:41.212688",
+      "steps_count": 0,
+      "tool_calls_count": 0,
+      "total_tokens": 0
+    },
+    {
+      "trace_id": "53c30c1f-47cf-445e-8030-862a3ab9b18f",
+      "query": "请帮我分析一下这两个数字：15和27的最大公约数",
+      "success": false,
+      "start_time": "2025-09-06T11:27:41.214701",
+      "end_time": "2025-09-06T11:27:48.368604",
+      "steps_count": 0,
+      "tool_calls_count": 0,
+      "total_tokens": 0
+    }
+  ]
+}

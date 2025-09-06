@@ -1,7 +1,30 @@
-openai>=1.40.0
-fastapi>=0.112.0
-uvicorn>=0.30.0
-pydantic>=2.7.0
-PyYAML>=6.0.1
-requests>=2.32.0
-python-dotenv>=1.0.0
+# LangChain 相关
+langchain==0.2.11
+langchain-community==0.2.10
+langchain-core==0.2.23
+langchain-openai==0.1.17
+
+# MCP 协议支持
+mcp==0.1.0
+
+# API 客户端
+openai==1.6.1
+anthropic==0.7.8
+zhipuai==2.0.1
+
+# 环境变量管理
+python-dotenv==1.0.0
+
+# 数据处理和可视化
+pandas==2.1.4
+matplotlib==3.8.2
+plotly==5.17.0
+streamlit==1.29.0
+
+# 工具相关
+requests==2.31.0
+beautifulsoup4==4.12.2
+
+# 开发工具
+pydantic==2.5.2
+typing-extensions==4.9.0
