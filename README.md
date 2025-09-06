@@ -1,7 +1,10 @@
-# B1 React Engine Project
+# Kimi B1 React Engine Project
 
+本项目是最新版本 *v3.0*，之前尝试的两个版本 *v1.0* 和 *v2.0* 可以在不同的branch中找到。
 一个基于 ReAct 模式的 AI Agent 框架，支持工具调用、轨迹记录和批量执行。
 
+## 效果图
+![测试结果](详细分析.png)
 ## 🚀 快速开始
 
 ### 1. 测试项目
