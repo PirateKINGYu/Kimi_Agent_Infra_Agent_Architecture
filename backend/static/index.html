@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1 Agent 观测平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">B1 Agent 执行观测平台</a>
+            <div class="navbar-nav ms-auto">
+                <button class="btn btn-outline-light" onclick="refreshRuns()">刷新</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>运行记录列表</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="runsList">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>详细分析面板</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <div id="debugInfo">
+                            <div class="text-center text-muted">
+                                <h6>点击左侧运行记录查看分析</h6>
+                                <p>支持深度分析和基础信息查看</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let currentRuns = [];
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
+            refreshRuns();
+        });
+
+        // 刷新运行列表
+        async function refreshRuns() {
+            console.log('开始刷新运行列表...');
+            const debugDiv = document.getElementById('debugInfo');
+            const runsDiv = document.getElementById('runsList');
+            
+            try {
+                debugDiv.innerHTML = '正在获取运行记录...';
+                
+                const response = await fetch('/runs');
+                console.log('API响应状态:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const runs = await response.json();
+                console.log('获取到运行记录:', runs.length, runs);
+                
+                currentRuns = runs;
+                renderRunsList(runs);
+                
+                debugDiv.innerHTML = `
+                    <strong>调试信息:</strong><br>
+                    - API状态: ${response.status}<br>
+                    - 记录数量: ${runs.length}<br>
+                    - 最后更新: ${new Date().toLocaleTimeString()}
+                `;
+                
+            } catch (error) {
+                console.error('获取运行列表失败:', error);
+                runsDiv.innerHTML = `<div class="alert alert-danger">获取失败: ${error.message}</div>`;
+                debugDiv.innerHTML = `<div class="text-danger">错误: ${error.message}</div>`;
+            }
+        }
+
+        // 渲染运行列表
+        function renderRunsList(runs) {
+            console.log('渲染运行列表，数量:', runs.length);
+            const container = document.getElementById('runsList');
+            
+            if (!container) {
+                console.error('找不到runsList容器');
+                return;
+            }
+            
+            if (runs.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">暂无运行记录</div>';
+                return;
+            }
+            
+            let html = '';
+            runs.forEach((run, index) => {
+                const statusColor = run.status === 'done' ? 'success' : 
+                                   run.status === 'running' ? 'primary' : 'danger';
+                
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body p-3">
+                            <h6 class="card-title">${run.run_id}</h6>
+                            <p class="card-text small">${run.task || '无任务描述'}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-${statusColor}">${run.status}</span>
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-primary" onclick="viewRunDetails('${run.run_id}')">详细分析</button>
+                                    <button class="btn btn-outline-info" onclick="viewSimpleDetails('${run.run_id}')">基础信息</button>
+                                </div>
+                            </div>
+                            <small class="text-muted">${run.created_at}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            console.log('运行列表渲染完成');
+        }
+
+        // 查看运行详情
+        async function viewRunDetails(runId) {
+            console.log('查看运行详情:', runId);
+            const debugDiv = document.getElementById('debugInfo');
+            
+            try {
+                debugDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> 正在加载深度分析...';
+                
+                // 获取运行基础数据
+                const runResponse = await fetch(`/runs/${runId}`);
+                const runData = await runResponse.json();
+                
+                // 获取深度分析数据
+                const analysisResponse = await fetch(`/runs/${runId}/analysis`);
+                const analysisData = await analysisResponse.json();
+                
+                displayRunAnalysis(runData, analysisData);
+                
+            } catch (error) {
+                console.error('获取详情失败:', error);
+                debugDiv.innerHTML = `<div class="alert alert-danger">获取详情失败: ${error.message}</div>`;
+            }
+        }
+
+        // 查看简单详情
+        async function viewSimpleDetails(runId) {
+            console.log('查看简单详情:', runId);
+            const debugDiv = document.getElementById('debugInfo');
+            
+            try {
+                debugDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> 正在加载...';
+                
+                const response = await fetch(`/runs/${runId}`);
+                const data = await response.json();
+                
+                displaySimpleDetails(data);
+                
+            } catch (error) {
+                console.error('获取详情失败:', error);
+                debugDiv.innerHTML = `<div class="alert alert-danger">获取详情失败: ${error.message}</div>`;
+            }
+        }
+
+        // 显示运行分析
+        function displayRunAnalysis(runData, analysisData) {
+            const debugDiv = document.getElementById('debugInfo');
+            const run = runData.run;
+            const steps = runData.steps || [];
+            
+            let html = `
+                <h5>深度分析 - ${run.run_id}</h5>
+                <div class="mb-3">
+                    <strong>任务:</strong> ${run.task}<br>
+                    <strong>状态:</strong> <span class="badge bg-${run.status === 'done' ? 'success' : 'primary'}">${run.status}</span><br>
+                    <strong>步骤数:</strong> ${steps.length}
+                </div>
+            `;
+            
+            if (analysisData.error) {
+                html += `<div class="alert alert-warning">分析功能暂不可用: ${analysisData.error}</div>`;
+            } else {
+                // 思维模式分析
+                const pattern = analysisData.thinking_pattern || {};
+                html += `
+                    <div class="mb-3">
+                        <h6>🧠 思维模式分析</h6>
+                        <div class="row">
+                            <div class="col-6">思考深度: <strong>${(pattern.depth_score * 100 || 0).toFixed(1)}%</strong></div>
+                            <div class="col-6">逻辑连贯性: <strong>${(pattern.coherence_score * 100 || 0).toFixed(1)}%</strong></div>
+                            <div class="col-6">执行效率: <strong>${(pattern.efficiency_score * 100 || 0).toFixed(1)}%</strong></div>
+                            <div class="col-6">决策质量: <strong>${(pattern.decision_quality * 100 || 0).toFixed(1)}%</strong></div>
+                        </div>
+                    </div>
+                `;
+                
+                // 性能指标
+                const perf = analysisData.performance_metrics || {};
+                html += `
+                    <div class="mb-3">
+                        <h6>⚡ 性能指标</h6>
+                        <div class="row">
+                            <div class="col-6">总Token: <strong>${perf.total_tokens || 0}</strong></div>
+                            <div class="col-6">平均延迟: <strong>${(perf.avg_latency || 0).toFixed(3)}s</strong></div>
+                            <div class="col-6">成功率: <strong>${((perf.success_rate || 0) * 100).toFixed(1)}%</strong></div>
+                            <div class="col-6">错误数: <strong>${perf.error_count || 0}</strong></div>
+                        </div>
+                    </div>
+                `;
+                
+                // 质量评估
+                const quality = analysisData.quality_assessment || {};
+                html += `
+                    <div class="mb-3">
+                        <h6>📊 质量评估</h6>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-primary" style="width: ${(quality.overall * 100 || 0)}%">
+                                综合评分: ${((quality.overall || 0) * 100).toFixed(1)}%
+                            </div>
+                        </div>
+                        <small>完成度: ${((quality.completion || 0) * 100).toFixed(1)}% | 
+                               效率: ${((quality.efficiency || 0) * 100).toFixed(1)}% | 
+                               稳定性: ${((quality.stability || 0) * 100).toFixed(1)}%</small>
+                    </div>
+                `;
+                
+                // 异常检测
+                const anomalies = analysisData.anomaly_detection || [];
+                if (anomalies.length > 0) {
+                    html += `
+                        <div class="mb-3">
+                            <h6>⚠️ 异常检测</h6>
+                            <div class="alert alert-warning">
+                                <ul class="mb-0">
+                                    ${anomalies.map(a => `<li>${a.description}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `<div class="mb-3"><h6>✅ 异常检测</h6><p class="text-success">未检测到异常</p></div>`;
+                }
+                
+                // 改进建议
+                const suggestions = analysisData.improvement_suggestions || [];
+                if (suggestions.length > 0) {
+                    html += `
+                        <div class="mb-3">
+                            <h6>💡 改进建议</h6>
+                            <ul>
+                                ${suggestions.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+            }
+            
+            // 执行步骤
+            html += `
+                <div class="mb-3">
+                    <h6>📋 执行步骤 (${steps.length})</h6>
+                    <div style="max-height: 300px; overflow-y: auto;">
+            `;
+            
+            steps.forEach((step, index) => {
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body p-2">
+                            <div class="d-flex justify-content-between">
+                                <strong>Step ${step.step_no}</strong>
+                                <small>${step.latency_s?.toFixed(3)}s</small>
+                            </div>
+                            ${step.thought ? `<div class="small text-primary">💭 ${step.thought}</div>` : ''}
+                            ${step.action ? `<div class="small text-success">🔧 ${step.action}</div>` : ''}
+                            ${step.observation ? `<div class="small text-info">👁️ ${step.observation}</div>` : ''}
+                            ${step.error ? `<div class="small text-danger">❌ ${step.error}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="refreshRuns()">返回列表</button>
+            `;
+            
+            debugDiv.innerHTML = html;
+        }
+
+        // 显示简单详情
+        function displaySimpleDetails(data) {
+            const debugDiv = document.getElementById('debugInfo');
+            const run = data.run;
+            const steps = data.steps || [];
+            
+            const totalTokens = steps.reduce((sum, step) => {
+                const usage = JSON.parse(step.model_usage_json || '{}');
+                return sum + (usage.total_tokens || 0);
+            }, 0);
+            
+            const totalLatency = steps.reduce((sum, step) => sum + (step.latency_s || 0), 0);
+            
+            debugDiv.innerHTML = `
+                <h5>基础信息 - ${run.run_id}</h5>
+                <div class="mb-3">
+                    <strong>任务:</strong> ${run.task}<br>
+                    <strong>状态:</strong> <span class="badge bg-${run.status === 'done' ? 'success' : 'primary'}">${run.status}</span><br>
+                    <strong>模型:</strong> ${run.model}<br>
+                    <strong>创建时间:</strong> ${run.created_at}
+                </div>
+                <div class="mb-3">
+                    <strong>统计信息:</strong><br>
+                    步骤数: ${steps.length}<br>
+                    总耗时: ${totalLatency.toFixed(2)}s<br>
+                    Token消耗: ${totalTokens}
+                </div>
+                ${run.final_answer ? `
+                    <div class="mb-3">
+                        <strong>最终答案:</strong><br>
+                        <div class="alert alert-info">${run.final_answer}</div>
+                    </div>
+                ` : ''}
+                <button class="btn btn-secondary btn-sm" onclick="refreshRuns()">返回列表</button>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+name: v1
+model: moonshot-v1-8k
+temperature: 0.2
+max_steps: 8
+redact_thought: true
+tools:
+  allow: ["calculator", "read_file", "write_file", "list_dir", "web_search"]

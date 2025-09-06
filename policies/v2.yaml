@@ -1,0 +1,41 @@
+# 策略配置 v2
+version: "2.0"
+name: "增强策略"
+description: "增强的安全和性能策略，支持更多工具"
+
+extends: "v1.yaml"
+
+security:
+  max_execution_time: 600  # 增加到10分钟
+  allowed_tools:
+    - calc
+    - file_read
+    - file_write  # 新增写入权限
+    - search
+    - http_request  # 新增网络请求
+  blocked_commands:
+    - rm
+    - del
+    - format
+    - sudo
+    - chmod
+  sandbox_enabled: true
+  network_enabled: true  # 允许网络访问
+
+performance:
+  max_memory_mb: 1024  # 增加内存限制
+  max_cpu_percent: 90
+  concurrent_tasks: 8  # 增加并发数
+
+monitoring:
+  real_time_metrics: true
+  alert_thresholds:
+    cpu_percent: 85
+    memory_percent: 90
+    execution_time: 500
+
+logging:
+  level: "DEBUG"
+  trace_enabled: true
+  metrics_enabled: true
+  export_format: "json"
