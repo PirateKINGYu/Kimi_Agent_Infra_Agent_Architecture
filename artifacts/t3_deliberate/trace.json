@@ -1,0 +1,58 @@
+{
+  "task": "What is the capital of France? Use search, then answer.",
+  "policy_variant": "deliberate",
+  "suite_version": "v1",
+  "steps": [
+    {
+      "step": 1,
+      "thought": "Plan: identify subgoals and choose a tool.",
+      "action": null,
+      "input": null,
+      "observation": null,
+      "error": null,
+      "t_start": 1757083633.2610846,
+      "t_end": 1757083633.2610903,
+      "token_est": 10
+    },
+    {
+      "step": 2,
+      "thought": "Use search to gather facts.",
+      "action": "search",
+      "input": "What is the capital of France? Use search, then answer.",
+      "observation": "Paris is the capital of France.",
+      "error": null,
+      "t_start": 1757083633.261112,
+      "t_end": 1757083633.2611196,
+      "token_est": 6
+    },
+    {
+      "step": 3,
+      "thought": "Use search to gather facts.",
+      "action": "search",
+      "input": "What is the capital of France? Use search, then answer.",
+      "observation": "Paris is the capital of France.",
+      "error": null,
+      "t_start": 1757083633.2611284,
+      "t_end": 1757083633.2611318,
+      "token_est": 6
+    },
+    {
+      "step": 4,
+      "thought": "Use search to gather facts.",
+      "action": "search",
+      "input": "What is the capital of France? Use search, then answer.",
+      "observation": "Paris is the capital of France.",
+      "error": null,
+      "t_start": 1757083633.2611384,
+      "t_end": 1757083633.261141,
+      "token_est": 6
+    }
+  ],
+  "started_at": 1757083633.2610774,
+  "ended_at": 1757083633.2611427,
+  "status": "stalled",
+  "final_answer": null,
+  "reason": "loop detected on tool 'search'",
+  "tool_calls": 3,
+  "token_est_total": 28
+}

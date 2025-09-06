@@ -1,0 +1,108 @@
+{
+  "simple": {
+    "aggregate": {
+      "total": 3,
+      "ok": 1,
+      "stalled": 2,
+      "max_steps": 0,
+      "avg_steps": 2.667,
+      "avg_latency_s": 0.001,
+      "avg_token_est": 14.3,
+      "avg_tool_calls": 2.33
+    },
+    "reports": [
+      {
+        "task": "Compute 12*7 and then write to result.txt the sentence 'The result is 84'.",
+        "policy_variant": "simple",
+        "status": "ok",
+        "reason": "finished",
+        "final_answer": "84",
+        "steps": 2,
+        "tool_calls": 1,
+        "token_est_total": 10,
+        "latency_s": 0.0004,
+        "auto_score": 1.0,
+        "assert_passed": false
+      },
+      {
+        "task": "What is the capital of France? Use search, then answer.",
+        "policy_variant": "simple",
+        "status": "stalled",
+        "reason": "loop detected on tool 'search'",
+        "final_answer": null,
+        "steps": 3,
+        "tool_calls": 3,
+        "token_est_total": 18,
+        "latency_s": 0.0001,
+        "auto_score": 0.0,
+        "assert_passed": true
+      },
+      {
+        "task": "Create file notes.txt with hello world",
+        "policy_variant": "simple",
+        "status": "stalled",
+        "reason": "loop detected on tool 'file_write'",
+        "final_answer": null,
+        "steps": 3,
+        "tool_calls": 3,
+        "token_est_total": 15,
+        "latency_s": 0.0037,
+        "auto_score": 0.0,
+        "assert_passed": true
+      }
+    ]
+  },
+  "deliberate": {
+    "aggregate": {
+      "total": 3,
+      "ok": 1,
+      "stalled": 2,
+      "max_steps": 0,
+      "avg_steps": 3.667,
+      "avg_latency_s": 0.003,
+      "avg_token_est": 24.3,
+      "avg_tool_calls": 2.33
+    },
+    "reports": [
+      {
+        "task": "Compute 12*7 and then write to result.txt the sentence 'The result is 84'.",
+        "policy_variant": "deliberate",
+        "status": "ok",
+        "reason": "finished",
+        "final_answer": "84",
+        "steps": 3,
+        "tool_calls": 1,
+        "token_est_total": 20,
+        "latency_s": 0.0001,
+        "auto_score": 1.0,
+        "assert_passed": false
+      },
+      {
+        "task": "What is the capital of France? Use search, then answer.",
+        "policy_variant": "deliberate",
+        "status": "stalled",
+        "reason": "loop detected on tool 'search'",
+        "final_answer": null,
+        "steps": 4,
+        "tool_calls": 3,
+        "token_est_total": 28,
+        "latency_s": 0.0001,
+        "auto_score": 0.0,
+        "assert_passed": true
+      },
+      {
+        "task": "Create file notes.txt with hello world",
+        "policy_variant": "deliberate",
+        "status": "stalled",
+        "reason": "loop detected on tool 'file_write'",
+        "final_answer": null,
+        "steps": 4,
+        "tool_calls": 3,
+        "token_est_total": 25,
+        "latency_s": 0.0093,
+        "auto_score": 0.0,
+        "assert_passed": true
+      }
+    ]
+  }
+}

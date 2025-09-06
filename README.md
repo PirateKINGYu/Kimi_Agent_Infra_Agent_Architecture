@@ -1,187 +1,67 @@
-# B1 React Engine Project
 
-一个基于 ReAct 模式的 AI Agent 框架，支持工具调用、轨迹记录和批量执行。
+# Kimi-Agent-Minimal (B1/B2)
 
-## 🚀 快速开始
+> 一个 200~500 行的最小 ReAct 执行引擎 + 批量评测与可视化示例（零依赖 Agent 框架，标准库 + matplotlib）。
 
-### 1. 测试项目
+## 1. 快速开始
+
 ```bash
-python main.py test
+# 单例演示（B1）
+python run_demo.py --task "Compute 12*7 and then write to result.txt the sentence 'The result is 84'"
+
+# 批量评测（B2，simple vs deliberate 两个变体做 A/B）
+python run_batch.py --cases tests/cases.jsonl --variant simple,deliberate
 ```
 
-### 2. 安装依赖
-```bash
-pip install -r requirements.txt
-```
+产物位于 `artifacts/`：
+- `trace.json`：完整轨迹
+- `report.json`：单次运行报告
+- `trace.png`：单次轨迹可视化
+- `batch_report.json`：批量评测与 A/B 聚合结果
 
-### 3. 配置环境变量
-```bash
-cp .env.example .env
-# 编辑 .env 文件，填入你的 API 密钥
-```
+## 2. B1：Agent 执行引擎
 
-### 4. 运行示例
+- **ReAct 循环**：Thought → Action → Observation，直到 Finish / MaxSteps / Loop 检测
+- **工具**：`calculator` / `file_write` / `file_read` / `file_list` / `search(mock)`
+- **观测维度**：
+  - 轨迹：每步输入、输出、时延、异常、token 估算（len/4）、工具调用数
+  - 错误诊断：异常堆栈截断记录；最近 3 步重复同一工具 & 无新增信息 → 视为循环思考
+- **可视化**：`src/viz.py` 输出时延条形图
 
-#### 单任务执行
-```bash
-python main.py b1 --task "计算 2+3*4"
-```
+> 引擎核心：`src/engine.py`。不依赖 LangChain/AutoGPT 等框架。
 
-#### 批量任务执行
-```bash
-python main.py b2 --cases cases/cases.jsonl
-```
+## 3. B2：批量测试与评估
 
-#### 启动后端服务
-```bash
-python main.py server
-# 访问 http://localhost:8000
-```
+- **并发执行**：`ThreadPoolExecutor`；用例 `jsonl`
+- **A/B**：通过 `policy_variant` 切换 `simple`/`deliberate` 策略
+- **自动评分**：`expect` 子串命中 + 文件断言（存在/包含）
+- **聚合指标**：成功率、平均步数、平均时延、平均 token 估算、平均工具调用数
+- **脱敏**：示例正则掩码邮箱/手机号（可扩展）
 
-#### 运行评估
-```bash
-python main.py eval --runs runs --cases cases/cases.jsonl
-```
+## 4. 指标与思维质量（建议）
 
-## 📁 项目结构
+- **有效步率**：产生新 Observation 的步 / 总步
+- **聚焦度**：目标关键词漂移率（输入输出 Jaccard 漂移）
+- **工具效率**：必要工具数 / 总调用数
+- **单位 token 产出**：关键字段命中 / token 估算
+- **稳健性**：异常恢复比例、循环思考触发率
 
-```
-repo/
-├── main.py                 # 主入口脚本
-├── test_project.py        # 项目测试脚本
-├── requirements.txt       # 依赖列表
-├── .env.example          # 环境变量示例
-├── README.md
-├── LICENSE
-│
-├── src/                   # 核心源代码
-│   ├── b1_cli.py         # B1 单任务执行
-│   ├── b2_runner.py      # B2 批量并发执行
-│   ├── b2_eval.py        # 自动评分与汇总
-│   └── core/             # 核心模块
-│       ├── react_engine.py    # ReAct 引擎
-│       ├── model_adapter.py   # 模型适配器
-│       ├── toolbus.py         # 工具总线
-│       ├── tools_local.py     # 本地工具
-│       ├── trace.py           # 轨迹记录
-│       ├── sink.py            # 数据输出
-│       └── visualize.py       # 可视化生成
-│
-├── backend/               # 可选后端服务
-│   ├── app.py            # FastAPI 应用
-│   ├── store.py          # 数据存储
-│   ├── schemas.py        # 数据模型
-│   └── static/
-│       └── index.html    # 前端界面
-│
-├── cases/                 # 测试用例
-│   └── cases.jsonl       # 批量测试用例
-│
-├── policies/              # 策略配置
-│   ├── v1.yaml           # 基础策略
-│   └── v2.yaml           # 增强策略
-│
-├── runs/                  # 输出目录
-│
-└── scripts/               # 快速启动脚本
-    ├── quickstart_b1.sh
-    └── batch_demo_b2.sh
-```
+## 5. 循环思考与检测
 
-## 🔧 功能特性
+- 硬阈：`max_steps`
+- 软判：近 3 步同工具 + Observation 恒等 → `stalled`
+- 退出后报告写入 `reason` 便于诊断
 
-### 核心功能
-- **ReAct 引擎**: 支持 Thought-Action-Observation 循环
-- **多模型支持**: Kimi/OpenAI/Claude 等（可扩展）
-- **工具系统**: 计算器、文件操作、网络搜索等
-- **轨迹记录**: 完整的执行过程记录
-- **批量执行**: 支持并发处理多个任务
-- **自动评估**: 基于规则的评分系统
+## 6. 与真实 LLM/Claude 的集成
 
-### 安全特性
-- 工具调用白名单机制
-- 文件操作路径限制
-- API 密钥脱敏处理
-- 执行时间限制
+- 替换 `SimpleReActPolicy.decide` 为 LLM 调用即可：
+  - 将当前轨迹格式化为 ReAct 提示词
+  - 解析 LLM 输出中的 Thought/Action/Finish
+  - 保留本仓库的**观测/可视化/批量评测**不变
+- 可新增 `ClaudePolicy` / `OpenAIChatPolicy`，通过环境变量注入 API Key
 
-### 可视化
-- HTML 报告生成
-- 实时进度追踪
-- 指标统计和分析
+## 7. 后续扩展
 
-## 📊 使用示例
-
-### 单任务示例
-```python
-from src.core.react_engine import ReactEngine, ReactConfig
-from src.core.model_adapter import KimiAdapter
-from src.core.toolbus import LocalBus
-
-# 创建引擎
-model = KimiAdapter()
-tools = LocalBus(allow=["calculator", "read_file"])
-config = ReactConfig(max_steps=10)
-engine = ReactEngine(model, tools, config)
-
-# 执行任务
-trace = engine.run("计算 fibonacci(10)")
-print(f"结果: {trace.final_answer}")
-```
-
-### 批量任务示例
-```jsonl
-{"id": "calc_1", "prompt": "计算 2+3", "expect": {"must_contain": ["5"]}}
-{"id": "calc_2", "prompt": "计算 10*5", "expect": {"must_contain": ["50"]}}
-```
-
-## 🛠️ 开发
-
-### 运行测试
-```bash
-python main.py test
-```
-
-### 代码检查
-```bash
-python -m py_compile src/**/*.py
-```
-
-### 启动开发服务器
-```bash
-python main.py server
-```
-
-## 📝 配置说明
-
-### 策略配置 (policies/v1.yaml)
-```yaml
-version: "1.0"
-name: "基础策略"
-model: "moonshot-v1-8k"
-temperature: 0.2
-max_steps: 8
-security:
-  allowed_tools: ["calculator", "read_file", "write_file"]
-  max_execution_time: 300
-```
-
-### 环境变量 (.env)
-```env
-# Kimi API 配置（主要使用）
-KIMI_API_KEY=your_kimi_api_key_here
-MOONSHOT_API_KEY=your_kimi_api_key_here
-KIMI_BASE_URL=https://api.moonshot.cn/v1
-
-# OpenAI 配置（备用）
-OPENAI_API_KEY=your_openai_api_key_here
-LOG_LEVEL=INFO
-OUTPUT_DIR=runs
-```
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
-
-MIT License
+- 轨迹存储：落地 SQLite/Parquet；加上索引与过滤检索
+- 可视化：Flask/Gradio 简易调试台；轨迹对比（高亮差异步）
+- 评测：引入更丰富断言（正则、结构、数值误差容忍）

@@ -1,0 +1,13 @@
+{
+  "task": "Compute 12*7 and then write to result.txt the sentence 'The result is 84'.",
+  "policy_variant": "simple",
+  "status": "ok",
+  "reason": "finished",
+  "final_answer": "84",
+  "steps": 2,
+  "tool_calls": 1,
+  "token_est_total": 10,
+  "latency_s": 0.0004,
+  "auto_score": 1.0,
+  "assert_passed": false
+}

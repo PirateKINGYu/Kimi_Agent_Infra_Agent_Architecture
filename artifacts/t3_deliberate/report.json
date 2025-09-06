@@ -1,0 +1,13 @@
+{
+  "task": "What is the capital of France? Use search, then answer.",
+  "policy_variant": "deliberate",
+  "status": "stalled",
+  "reason": "loop detected on tool 'search'",
+  "final_answer": null,
+  "steps": 4,
+  "tool_calls": 3,
+  "token_est_total": 28,
+  "latency_s": 0.0001,
+  "auto_score": 0.0,
+  "assert_passed": true
+}

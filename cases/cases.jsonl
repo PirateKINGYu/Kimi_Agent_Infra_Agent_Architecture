@@ -1,3 +1,0 @@
-{"id":"calc_v1","prompt":"Compute (23*19)+sqrt(144) and save to calc.txt","policy":"v1","expect":{"eq_file":{"path":"calc.txt","value":"449.0"},"max_steps":8}}
-{"id":"jp_pop_v1","prompt":"Find Japan's population and write it to result.txt","policy":"v1","expect":{"exists_file":{"path":"result.txt"},"max_steps":8}}
-{"id":"list_dir_v1","prompt":"List files in current directory and save to out.txt","policy":"v1","expect":{"exists_file":{"path":"out.txt"},"max_steps":6}}
